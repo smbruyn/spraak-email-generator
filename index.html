@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spraakgestuurde Email Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .setup-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .setup-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .api-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        
+        .voice-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .voice-button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .voice-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+        
+        .voice-button.listening {
+            background: linear-gradient(45deg, #51cf66, #40c057);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .voice-status {
+            margin: 15px 0;
+            font-size: 16px;
+            color: #666;
+            min-height: 20px;
+        }
+        
+        .transcript {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-height: 60px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .transcript h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .transcript-text {
+            font-style: italic;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .email-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .examples {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .examples h4 {
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+        }
+        
+        .examples ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .examples li {
+            margin: 8px 0;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Spraakgestuurde Email Generator</h1>
+        <p class="subtitle">Spreek je instructies, krijg professionele emails</p>
+        
+        <div class="setup-section">
+            <h3>🔑 Setup (eenmalig)</h3>
+            <input type="password" id="apiKey" class="api-input" placeholder="Plak hier je Google AI Studio API key (AIza...)">
+            <small style="color: #666;">Je API key wordt veilig opgeslagen in je browser en niet gedeeld.</small>
+        </div>
+        
+        <div class="examples">
+            <h4>📝 Voorbeelden van wat je kunt zeggen:</h4>
+            <ul>
+                <li>"Email naar Dr. van der Berg over zijn artikel klimaatverandering, stuur geredigeerde versie, deadline vrijdag"</li>
+                <li>"Brief aan Professor Jansen, vraag om extra afbeeldingen bij zijn stuk over geschiedenis, geen haast"</li>
+                <li>"Mail naar mevrouw De Wit, accepteer haar artikel over literatuur voor april nummer"</li>
+                <li>"Email naar Dr. Bakker, vraag verduidelijking paragraaf 3 van zijn artikel"</li>
+            </ul>
+        </div>
+        
+        <div class="voice-section">
+            <button id="voiceButton" class="voice-button">🎤</button>
+            <div id="voiceStatus" class="voice-status">Klik op de microfoon om te beginnen</div>
+        </div>
+        
+        <div id="transcriptSection" class="transcript hidden">
+            <h4>Gehoord:</h4>
+            <div id="transcriptText" class="transcript-text"></div>
+        </div>
+        
+        <div id="loadingSection" class="loading hidden">
+            <div class="spinner"></div>
+            <p>AI genereert je email...</p>
+        </div>
+        
+        <div id="errorSection" class="error hidden"></div>
+        
+        <div id="emailSection" class="hidden">
+            <h3>📧 Gegenereerde Email:</h3>
+            <div id="emailOutput" class="email-output"></div>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="copyToClipboard()">📋 Kopiëren</button>
+                <button class="btn btn-primary" onclick="regenerateEmail()">🔄 Andere Versie</button>
+                <button class="btn btn-secondary" onclick="startOver()">🆕 Nieuwe Email</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let currentTranscript = '';
+        let currentInstructions = '';
+        let isListening = false;
+        
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'nl-NL';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('voiceButton').classList.add('listening');
+                document.getElementById('voiceStatus').textContent = 'Luisteren... spreek nu je instructies';
+            };
+            
+            recognition.onresult = function(event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                currentTranscript = transcript;
+                document.getElementById('transcriptText').textContent = transcript;
+                document.getElementById('transcriptSection').classList.remove('hidden');
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                document.getElementById('voiceButton').classList.remove('listening');
+                
+                if (currentTranscript.trim()) {
+                    document.getElementById('voiceStatus').textContent = 'Gelukt! Genereer nu de email...';
+                    currentInstructions = currentTranscript;
+                    generateEmail(currentTranscript);
+                } else {
+                    document.getElementById('voiceStatus').textContent = 'Geen spraak gedetecteerd. Probeer opnieuw.';
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                isListening = false;
+                document.getElementById('voiceButton').classList.remove('listening');
+                showError('Spraakherkenning fout: ' + event.error);
+            };
+        } else {
+            showError('Je browser ondersteunt geen spraakherkenning. Probeer Chrome.');
+        }
+        
+        // Load saved API key
+        const savedApiKey = localStorage.getItem('gemini_api_key');
+        if (savedApiKey) {
+            document.getElementById('apiKey').value = savedApiKey;
+        }
+        
+        // Save API key when entered
+        document.getElementById('apiKey').addEventListener('input', function() {
+            const key = this.value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+            }
+        });
+        
+        document.getElementById('voiceButton').addEventListener('click', function() {
+            if (!recognition) {
+                showError('Spraakherkenning niet beschikbaar');
+                return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+            
+            hideError();
+            document.getElementById('transcriptSection').classList.add('hidden');
+            document.getElementById('emailSection').classList.add('hidden');
+            
+            try {
+                recognition.start();
+            } catch (e) {
+                showError('Kan spraakherkenning niet starten: ' + e.message);
+            }
+        });
+        
+        async function generateEmail(instructions) {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!apiKey) {
+                showError('Voer eerst je Google AI Studio API key in');
+                return;
+            }
+            
+            showLoading();
+            hideError();
+            
+            const prompt = `Je bent een ervaren tijdschriftredacteur in Nederland. Genereer een professionele, beleefde email gebaseerd op deze gesproken instructie: "${instructions}"
+
+Belangrijke richtlijnen:
+- De ontvangers zijn meestal oudere mannelijke experts met moeilijke persoonlijkheden
+- Wees zeer beleefd, respectvol en waarderend voor hun expertise  
+- Gebruik gevarieerde, natuurlijke formuleringen (geen templates)
+- Begin altijd met een warme begroeting
+- Erken hun expertise expliciet
+- Frame verzoeken als samenwerking, niet als bevelen
+- Gebruik Nederlandse zakelijke email etiquette
+- Eindig met dankbaarheid
+- Houd de toon professioneel maar warm
+
+Genereer alleen de email tekst, geen extra uitleg.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9,
+                            maxOutputTokens: 1000,
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    const generatedEmail = data.candidates[0].content.parts[0].text;
+                    showEmail(generatedEmail);
+                } else {
+                    throw new Error('Geen email gegenereerd door AI');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Fout bij het genereren: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function regenerateEmail() {
+            if (currentInstructions) {
+                generateEmail(currentInstructions);
+            }
+        }
+        
+        function startOver() {
+            currentTranscript = '';
+            currentInstructions = '';
+            document.getElementById('transcriptSection').classList.add('hidden');
+            document.getElementById('emailSection').classList.add('hidden');
+            document.getElementById('voiceStatus').textContent = 'Klik op de microfoon om te beginnen';
+            hideError();
+        }
+        
+        function showEmail(email) {
+            document.getElementById('emailOutput').textContent = email;
+            document.getElementById('emailSection').classList.remove('hidden');
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingSection').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+        }
+        
+        function showError(message) {
+            document.getElementById('errorSection').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+        }
+        
+        function hideError() {
+            document.getElementById('errorSection').classList.add('hidden');
+        }
+        
+        function copyToClipboard() {
+            const emailText = document.getElementById('emailOutput').textContent;
+            navigator.clipboard.writeText(emailText).then(function() {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Gekopieerd!';
+                btn.style.background = '#20c997';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#28a745';
+                }, 2000);
+            }).catch(function() {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = emailText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Email gekopieerd naar klembord!');
+            });
+        }
+    </script>
+</body>
+</html>
